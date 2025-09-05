@@ -15,6 +15,7 @@
             justify-content: center;
             margin: 0;
             height: 100vh;
+            overflow: hidden;
         }
         h1 {
             color: #ffffff;
@@ -47,11 +48,15 @@
             padding: 10px 20px;
             border-radius: 5px;
         }
-        /* --- NEW: Styles for the fullscreen button --- */
-        #fullscreen-btn {
+        /* --- NEW: Button styles and container --- */
+        .controls-overlay {
             position: absolute;
             bottom: 15px;
             right: 15px;
+            display: flex;
+            gap: 10px;
+        }
+        .control-btn {
             cursor: pointer;
             opacity: 0.6;
             transition: opacity 0.2s ease-in-out;
@@ -59,10 +64,10 @@
             background: none;
             padding: 0;
         }
-        #fullscreen-btn:hover {
+        .control-btn:hover {
             opacity: 1;
         }
-        #fullscreen-btn svg {
+        .control-btn svg {
             width: 28px;
             height: 28px;
             color: white;
@@ -75,12 +80,15 @@
         <video id="video" autoplay playsinline></video>
         <div id="status">Connecting...</div>
         
-        <!-- --- NEW: Fullscreen Button --- -->
-        <button id="fullscreen-btn" title="Toggle Fullscreen">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
-        </button>
-    </div>
+        <div class="controls-overlay">
+             <button id="mute-btn" class="control-btn" title="Unmute">
+                <svg id="mute-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
+            </button>
+            <button id="fullscreen-btn" class="control-btn" title="Toggle Fullscreen">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+            </button>
+        </div>
+        </div>
     <script src="main.js"></script>
 </body>
 </html>
-

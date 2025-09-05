@@ -7,9 +7,27 @@ import time
 import signal
 import shlex
 
-MEDIAMTX_EXEC = "./mediamtx/mediamtx"
-GSTREAMER_CMD_STR = "gst-launch-1.0 v4l2src device=/dev/video0 ! video/x-raw,width=640,height=480,framerate=30/1 ! videoconvert ! x264enc speed-preset=ultrafast tune=zerolatency key-int-max=60 ! rtspclientsink location=rtsp://localhost:8554/stream"
+VIDEO_DEVICE = "/dev/video0"
+AUDIO_DEVICE = "alsa_input.pci-0000_00_1f.3.analog-stereo"
+
+# High-pass filter frequency in Hz. Cuts out low-frequency rumble.
+HIGH_PASS_FREQ = 200
+
+# Noise gate threshold (0.0 to 1.0). Higher values cut out more background noise.
+NOISE_GATE_THRESHOLD = 0.04
+
+# --- FFmpeg Command (Constructed from variables above) ---
+FFMPEG_CMD_STR = (
+    f"ffmpeg -f v4l2 -i {VIDEO_DEVICE} "
+    f"-f pulse -i {AUDIO_DEVICE} "
+    f"-c:v libx264 -preset ultrafast -tune zerolatency -pix_fmt yuv420p "
+    f'-af "highpass=f={HIGH_PASS_FREQ},agate=threshold={NOISE_GATE_THRESHOLD}" '
+    f"-c:a libopus -b:a 96k -ar 48000 "
+    f"-f rtsp -rtsp_transport tcp rtsp://localhost:8554/stream"
+)
+
 LOG_DIR = "/tmp"
+MEDIAMTX_EXEC = "./mediamtx/mediamtx"
 
 # Global list to hold the subprocess objects
 processes = []
@@ -47,6 +65,12 @@ def main():
         print(f"Error: mediamtx executable not found at '{MEDIAMTX_EXEC}'", file=sys.stderr)
         sys.exit(1)
 
+    from shutil import which
+    if which("ffmpeg") is None:
+        print("Error: ffmpeg command not found. Please install it.", file=sys.stderr)
+        print("On Debian/Ubuntu: sudo apt update && sudo apt install ffmpeg", file=sys.stderr)
+        sys.exit(1)
+
     print("Starting all components...")
 
     try:
@@ -75,17 +99,19 @@ def main():
         
         time.sleep(2)
 
-        # --- Start GStreamer ---
-        gstreamer_args = shlex.split(GSTREAMER_CMD_STR)
-        gstreamer_log = open(os.path.join(LOG_DIR, "gstreamer.log"), "w")
-        gstreamer_proc = subprocess.Popen(
-            gstreamer_args,
-            stdout=gstreamer_log,
+        # --- Start FFmpeg ---
+        print(f"--- Using Video Device: {VIDEO_DEVICE}")
+        print(f"--- Using Audio Device: {AUDIO_DEVICE}")
+        ffmpeg_args = shlex.split(FFMPEG_CMD_STR)
+        ffmpeg_log = open(os.path.join(LOG_DIR, "ffmpeg.log"), "w")
+        ffmpeg_proc = subprocess.Popen(
+            ffmpeg_args,
+            stdout=ffmpeg_log,
             stderr=subprocess.STDOUT,
             preexec_fn=os.setsid # Create a new process group
         )
-        processes.append(gstreamer_proc)
-        print(f"- GStreamer pipeline started (PID: {gstreamer_proc.pid})")
+        processes.append(ffmpeg_proc)
+        print(f"- FFmpeg pipeline started (PID: {ffmpeg_proc.pid})")
         
         print("\n---")
         print("Application is running.")
