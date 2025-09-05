@@ -1,0 +1,20 @@
+{
+  "name": "webrtc-baby-monitor",
+  "version": "1.0.0",
+  "description": "A WebRTC-based baby monitor.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "webrtc",
+    "raspberry-pi",
+    "baby-monitor",
+    "mediamtx"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
