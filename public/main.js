@@ -1,9 +1,8 @@
 // main.js - FINAL VERSION
-// This version uses a dynamic hostname and includes a fullscreen toggle.
+// This version uses a dynamic hostname, has a fullscreen toggle, and provides better user feedback.
 
 const videoElement = document.getElementById('video');
 const statusElement = document.getElementById('status');
-// --- NEW: Get references to the new elements ---
 const videoContainer = document.getElementById('video-container');
 const fullscreenBtn = document.getElementById('fullscreen-btn');
 
@@ -15,6 +14,15 @@ async function startViewing() {
     // Start muted to satisfy browser autoplay policy
     videoElement.muted = true;
 
+    // --- THE FIX: Listen for the 'playing' event ---
+    // This event only fires when the video actually starts rendering,
+    // which is the perfect time to hide the status message.
+    videoElement.addEventListener('playing', () => {
+        console.log("Video element has started playing.");
+        statusElement.style.display = 'none';
+    });
+    // --- END OF FIX ---
+
     try {
         const pc = new RTCPeerConnection();
 
@@ -24,12 +32,27 @@ async function startViewing() {
         pc.ontrack = (event) => {
             console.log(`Received track: ${event.track.kind}`);
             remoteStream.addTrack(event.track);
+            // We no longer hide the status here, we wait for the 'playing' event.
         };
 
         pc.onconnectionstatechange = () => {
-             console.log(`Connection state changed to: ${pc.connectionState}`);
-             if (pc.connectionState === 'connected') {
-                 statusElement.style.display = 'none';
+             const state = pc.connectionState;
+             console.log(`Connection state changed to: ${state}`);
+
+             switch (state) {
+                case 'connecting':
+                    statusElement.textContent = "Connecting...";
+                    statusElement.style.display = 'block';
+                    break;
+                case 'connected':
+                    statusElement.textContent = "Connection established. Waiting for video...";
+                    break;
+                case 'failed':
+                case 'closed':
+                case 'disconnected':
+                    statusElement.textContent = "Connection lost.";
+                    statusElement.style.display = 'block';
+                    break;
              }
         }
 
@@ -39,8 +62,6 @@ async function startViewing() {
         const offer = await pc.createOffer();
         await pc.setLocalDescription(offer);
 
-        // Replace the hardcoded 'localhost' with the dynamic hostname
-        // that was used to access the page.
         const whepUrl = `http://${window.location.hostname}:8889/stream/whep`;
         console.log(`Connecting to WHEP endpoint: ${whepUrl}`);
 
@@ -63,22 +84,16 @@ async function startViewing() {
     }
 }
 
-// --- NEW: Function to handle fullscreen toggle ---
 function toggleFullscreen() {
     if (!document.fullscreenElement) {
-        // If we're not in fullscreen, request it on the video container
         videoContainer.requestFullscreen().catch(err => {
             console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
         });
     } else {
-        // Otherwise, exit fullscreen
         document.exitFullscreen();
     }
 }
 
-// Add the click listener for the fullscreen button
 fullscreenBtn.addEventListener('click', toggleFullscreen);
-
-// Start the connection process as soon as the page loads.
 window.onload = startViewing;
 
