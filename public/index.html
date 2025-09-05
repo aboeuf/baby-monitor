@@ -47,6 +47,26 @@
             padding: 10px 20px;
             border-radius: 5px;
         }
+        /* --- NEW: Styles for the fullscreen button --- */
+        #fullscreen-btn {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: opacity 0.2s ease-in-out;
+            border: none;
+            background: none;
+            padding: 0;
+        }
+        #fullscreen-btn:hover {
+            opacity: 1;
+        }
+        #fullscreen-btn svg {
+            width: 28px;
+            height: 28px;
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -54,6 +74,11 @@
     <div id="video-container">
         <video id="video" autoplay playsinline></video>
         <div id="status">Connecting...</div>
+        
+        <!-- --- NEW: Fullscreen Button --- -->
+        <button id="fullscreen-btn" title="Toggle Fullscreen">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+        </button>
     </div>
     <script src="main.js"></script>
 </body>
